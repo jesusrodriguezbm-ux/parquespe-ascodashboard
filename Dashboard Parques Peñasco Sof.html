@@ -1,0 +1,257 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #0d2b55; --navy-mid: #1a3f72; --accent: #3b82c4;
+  --accent-light: #e6f1fb; --white: #ffffff; --surface: #f4f7fc;
+  --border: rgba(13,43,85,0.12); --text-main: #0d2b55; --text-muted: #4a6080;
+  --green: #2d7a4f; --green-bg: #e6f5ec; --yellow: #8a6200; --yellow-bg: #fff8e1;
+  --red: #b02020; --red-bg: #fdecea;
+}
+.dashboard { background: var(--surface); padding: 1.5rem; }
+.header { background: var(--navy); border-radius: 14px; padding: 1.5rem 2rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
+.header-left h1 { color: #fff; font-size: 20px; font-weight: 500; }
+.header-left p { color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 3px; }
+.header-badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; font-size: 12px; padding: 6px 14px; border-radius: 20px; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.edit-mode-btn { font-size: 12px; padding: 6px 16px; border-radius: 8px; border: 0.5px solid var(--accent); background: var(--accent-light); color: var(--navy-mid); cursor: pointer; font-family: var(--font-sans); font-weight: 500; }
+.edit-mode-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+.edit-hint { font-size: 11px; color: var(--text-muted); }
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); margin: 1.25rem 0 0.65rem; padding-left: 4px; display: flex; align-items: center; justify-content: space-between; }
+
+.deletable { position: relative; }
+.del-btn { display: none; position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--red-bg); border: 0.5px solid rgba(176,32,32,0.2); color: var(--red); font-size: 14px; cursor: pointer; z-index: 10; align-items: center; justify-content: center; font-family: var(--font-sans); }
+.edit-active .deletable:hover .del-btn { display: flex; }
+.del-row-btn { display: none; width: 20px; height: 20px; border-radius: 50%; background: var(--red-bg); border: 0.5px solid rgba(176,32,32,0.2); color: var(--red); font-size: 13px; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
+.edit-active .del-row-btn { display: flex; }
+
+.finance-wrap { background: var(--navy); border-radius: 12px; padding: 2rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 3rem; position: relative; }
+.finance-wrap.deletable .del-btn { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: #fff; }
+.fitem { text-align: center; }
+.fitem .fl { font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.fitem .fv { font-size: 28px; font-weight: 500; color: #fff; }
+.finance-sep { width: 1px; height: 56px; background: rgba(255,255,255,0.2); }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpi-card { background: var(--white); border-radius: 12px; border: 0.5px solid var(--border); padding: 1.1rem 1.25rem; position: relative; }
+.kpi-card .label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi-card .value { font-size: 22px; font-weight: 500; color: var(--text-main); }
+.kpi-card .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.indicator { position: absolute; top: 1rem; right: 2.2rem; width: 8px; height: 8px; border-radius: 50%; }
+.ind-green { background: #2d7a4f; } .ind-yellow { background: #d4a017; } .ind-red { background: #b02020; }
+.progress-bar-wrap { margin-top: 10px; background: var(--surface); border-radius: 6px; height: 6px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 6px; background: var(--navy-mid); }
+
+.two-col { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; }
+.one-col { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+.block-card { background: var(--white); border-radius: 12px; border: 0.5px solid var(--border); padding: 1.25rem; position: relative; }
+.block-card h3 { font-size: 13px; font-weight: 500; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.block-icon { width: 22px; height: 22px; border-radius: 6px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+.item-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+.item-row:last-child { border-bottom: none; }
+.item-name { font-size: 13px; color: var(--text-main); flex: 1; }
+.item-detail { font-size: 12px; color: var(--text-muted); }
+.tag { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.tag-green { background: var(--green-bg); color: var(--green); }
+.tag-yellow { background: var(--yellow-bg); color: var(--yellow); }
+.tag-red { background: var(--red-bg); color: var(--red); }
+.tag-blue { background: var(--accent-light); color: var(--navy-mid); }
+.add-row-btn { margin-top: 10px; background: none; border: 0.5px dashed var(--accent); color: var(--accent); font-size: 11px; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-family: var(--font-sans); display: none; }
+.edit-active .add-row-btn { display: inline-block; }
+
+.pagos-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+.pagos-table thead tr { background: var(--surface); }
+.pagos-table th { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); padding: 8px 10px; text-align: left; border-bottom: 0.5px solid var(--border); }
+.pagos-table th.r { text-align: right; }
+.pagos-table td { padding: 9px 10px; border-bottom: 0.5px solid var(--border); color: var(--text-main); vertical-align: middle; }
+.pagos-table td.r { text-align: right; }
+.pagos-table tbody tr:last-child td { border-bottom: none; }
+.monto { font-weight: 500; color: var(--navy-mid); }
+.pend-amt { color: var(--red); }
+.total-row td { font-weight: 500; background: var(--accent-light); color: var(--navy); border-bottom: none; }
+
+.editable { cursor: text; border-bottom: 1px dashed var(--accent); outline: none; min-width: 30px; display: inline-block; padding: 0 2px; border-radius: 2px; }
+.editable:focus { background: var(--accent-light); }
+select.tag-select { border: none; border-radius: 20px; font-size: 11px; font-weight: 500; padding: 3px 8px; cursor: pointer; outline: none; font-family: var(--font-sans); }
+
+@media (max-width: 560px) {
+  .two-col { grid-template-columns: 1fr; }
+  .finance-wrap { flex-direction: column; gap: 1.5rem; }
+  .finance-sep { width: 60px; height: 1px; }
+}
+</style>
+
+<div class="dashboard" id="app">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Proyecto Parques — Puerto Peñasco</h1>
+      <p>Dashboard de avance · <span id="hoy"></span></p>
+    </div>
+    <div class="header-badge">Fase final</div>
+  </div>
+
+  <div class="toolbar">
+    <button class="edit-mode-btn" id="editBtn" onclick="toggleEdit()">✎ Activar modo edición</button>
+    <span class="edit-hint" id="editHint">Activa el modo edición para modificar o eliminar cualquier elemento</span>
+  </div>
+
+  <div class="section-label">Resumen financiero</div>
+  <div class="finance-wrap deletable" id="finWrap">
+    <button class="del-btn" onclick="removeEl('finWrap')">×</button>
+    <div class="fitem">
+      <div class="fl">Saldo en banco</div>
+      <div class="fv">$<span class="editable" contenteditable="true">—</span></div>
+    </div>
+    <div class="finance-sep"></div>
+    <div class="fitem">
+      <div class="fl">Saldo total del proyecto</div>
+      <div class="fv">$<span class="editable" contenteditable="true">—</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">KPIs de avance <button class="edit-active-show" onclick="addKpi()" style="display:none;font-size:11px;padding:3px 10px;border-radius:6px;border:0.5px dashed var(--accent);background:none;color:var(--accent);cursor:pointer;font-family:var(--font-sans);">+ Agregar KPI</button></div>
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi-card deletable" id="kpi1"><button class="del-btn" onclick="removeEl('kpi1')">×</button><div class="indicator ind-yellow"></div><div class="label"><span class="editable" contenteditable="true">Obra sanitaria</span></div><div class="value"><span class="editable" contenteditable="true">65</span>%</div><div class="sub"><span class="editable" contenteditable="true">En instalación activa</span></div><div class="progress-bar-wrap"><div class="progress-bar" style="width:65%"></div></div></div>
+    <div class="kpi-card deletable" id="kpi2"><button class="del-btn" onclick="removeEl('kpi2')">×</button><div class="indicator ind-yellow"></div><div class="label"><span class="editable" contenteditable="true">Obra hidráulica</span></div><div class="value"><span class="editable" contenteditable="true">60</span>%</div><div class="sub"><span class="editable" contenteditable="true">En instalación activa</span></div><div class="progress-bar-wrap"><div class="progress-bar" style="width:60%"></div></div></div>
+    <div class="kpi-card deletable" id="kpi3"><button class="del-btn" onclick="removeEl('kpi3')">×</button><div class="indicator ind-green"></div><div class="label"><span class="editable" contenteditable="true">Parque</span></div><div class="value"><span class="editable" contenteditable="true">90</span>%</div><div class="sub"><span class="editable" contenteditable="true">Casi terminado</span></div><div class="progress-bar-wrap"><div class="progress-bar" style="width:90%"></div></div></div>
+    <div class="kpi-card deletable" id="kpi4"><button class="del-btn" onclick="removeEl('kpi4')">×</button><div class="indicator ind-red"></div><div class="label"><span class="editable" contenteditable="true">Trámites pendientes</span></div><div class="value"><span class="editable" contenteditable="true">3</span></div><div class="sub"><span class="editable" contenteditable="true">En proceso</span></div><div class="progress-bar-wrap"><div class="progress-bar" style="width:30%;background:var(--red)"></div></div></div>
+    <div class="kpi-card deletable" id="kpi5"><button class="del-btn" onclick="removeEl('kpi5')">×</button><div class="indicator ind-green"></div><div class="label"><span class="editable" contenteditable="true">Lotes vendidos</span></div><div class="value"><span class="editable" contenteditable="true">—</span></div><div class="sub">De <span class="editable" contenteditable="true">—</span> disponibles</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:50%"></div></div></div>
+    <div class="kpi-card deletable" id="kpi6"><button class="del-btn" onclick="removeEl('kpi6')">×</button><div class="indicator ind-yellow"></div><div class="label"><span class="editable" contenteditable="true">Avance general</span></div><div class="value"><span class="editable" contenteditable="true">72</span>%</div><div class="sub"><span class="editable" contenteditable="true">Proyecto global</span></div><div class="progress-bar-wrap"><div class="progress-bar" style="width:72%"></div></div></div>
+  </div>
+
+  <div class="section-label">Pagos por concepto</div>
+  <div class="block-card deletable" id="pagosCard" style="margin-bottom:12px">
+    <button class="del-btn" onclick="removeEl('pagosCard')">×</button>
+    <h3><span class="block-icon">💰</span> Desglose de pagos realizados</h3>
+    <div style="overflow-x:auto">
+    <table class="pagos-table">
+      <thead><tr>
+        <th style="width:22%">Concepto</th><th style="width:18%">Proveedor</th>
+        <th class="r" style="width:15%">Presupuesto</th><th class="r" style="width:15%">Pagado</th>
+        <th class="r" style="width:15%">Pendiente</th><th style="width:12%">Estatus</th><th style="width:3%"></th>
+      </tr></thead>
+      <tbody id="pagosBody">
+        <tr><td><span class="editable" contenteditable="true">Obra sanitaria</span></td><td><span class="editable" contenteditable="true">Contratista</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r pend-amt">$<span class="editable" contenteditable="true">—</span></td><td><select class="tag tag-yellow tag-select" onchange="styleSelect(this)"><option value="yellow">En proceso</option><option value="green">Pagado</option><option value="red">Pendiente</option><option value="blue">Por iniciar</option></select></td><td><button class="del-row-btn" onclick="removeRow(this)">×</button></td></tr>
+        <tr><td><span class="editable" contenteditable="true">Obra hidráulica</span></td><td><span class="editable" contenteditable="true">Contratista</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r pend-amt">$<span class="editable" contenteditable="true">—</span></td><td><select class="tag tag-yellow tag-select" onchange="styleSelect(this)"><option value="yellow">En proceso</option><option value="green">Pagado</option><option value="red">Pendiente</option><option value="blue">Por iniciar</option></select></td><td><button class="del-row-btn" onclick="removeRow(this)">×</button></td></tr>
+        <tr><td><span class="editable" contenteditable="true">Parque</span></td><td><span class="editable" contenteditable="true">Contratista</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r pend-amt">$<span class="editable" contenteditable="true">—</span></td><td><select class="tag tag-green tag-select" onchange="styleSelect(this)"><option value="green">Pagado</option><option value="yellow">En proceso</option><option value="red">Pendiente</option><option value="blue">Por iniciar</option></select></td><td><button class="del-row-btn" onclick="removeRow(this)">×</button></td></tr>
+        <tr><td><span class="editable" contenteditable="true">Luz / CFE</span></td><td><span class="editable" contenteditable="true">CFE</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r pend-amt">$<span class="editable" contenteditable="true">—</span></td><td><select class="tag tag-red tag-select" onchange="styleSelect(this)"><option value="red">Pendiente</option><option value="yellow">En proceso</option><option value="green">Pagado</option><option value="blue">Por iniciar</option></select></td><td><button class="del-row-btn" onclick="removeRow(this)">×</button></td></tr>
+        <tr><td><span class="editable" contenteditable="true">Finiquito Irineo</span></td><td><span class="editable" contenteditable="true">Irineo</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r pend-amt">$<span class="editable" contenteditable="true">—</span></td><td><select class="tag tag-red tag-select" onchange="styleSelect(this)"><option value="red">Pendiente</option><option value="yellow">En proceso</option><option value="green">Pagado</option><option value="blue">Por iniciar</option></select></td><td><button class="del-row-btn" onclick="removeRow(this)">×</button></td></tr>
+        <tr><td><span class="editable" contenteditable="true">Trámites / Gestión</span></td><td><span class="editable" contenteditable="true">Varios</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r pend-amt">$<span class="editable" contenteditable="true">—</span></td><td><select class="tag tag-yellow tag-select" onchange="styleSelect(this)"><option value="yellow">En proceso</option><option value="green">Pagado</option><option value="red">Pendiente</option><option value="blue">Por iniciar</option></select></td><td><button class="del-row-btn" onclick="removeRow(this)">×</button></td></tr>
+      </tbody>
+      <tfoot><tr class="total-row"><td colspan="2">Total</td><td class="r">$<span class="editable" contenteditable="true">—</span></td><td class="r">$<span class="editable" contenteditable="true">—</span></td><td class="r" style="color:var(--red)">$<span class="editable" contenteditable="true">—</span></td><td colspan="2"></td></tr></tfoot>
+    </table>
+    </div>
+    <button class="add-row-btn" onclick="addPagoRow()">+ Agregar concepto</button>
+  </div>
+
+  <div class="section-label">Detalle operativo</div>
+  <div class="two-col">
+    <div class="block-card deletable" id="obraCard">
+      <button class="del-btn" onclick="removeEl('obraCard')">×</button>
+      <h3><span class="block-icon">🏗</span> Obra civil</h3>
+      <div class="item-rows" id="obraRows">
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Instalación sanitaria</span><select class="tag tag-yellow tag-select" onchange="styleSelect(this)"><option value="yellow">En proceso</option><option value="green">Listo</option><option value="red">Pendiente</option><option value="blue">Planeado</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Instalación hidráulica</span><select class="tag tag-yellow tag-select" onchange="styleSelect(this)"><option value="yellow">En proceso</option><option value="green">Listo</option><option value="red">Pendiente</option><option value="blue">Planeado</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Parque principal</span><select class="tag tag-green tag-select" onchange="styleSelect(this)"><option value="green">Casi listo</option><option value="yellow">En proceso</option><option value="red">Pendiente</option><option value="blue">Planeado</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Próxima etapa</span><select class="tag tag-blue tag-select" onchange="styleSelect(this)"><option value="blue">Pendiente</option><option value="yellow">En proceso</option><option value="green">Listo</option><option value="red">Urgente</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+      </div>
+      <button class="add-row-btn" onclick="addItemRow('obraRows')">+ Agregar fila</button>
+    </div>
+    <div class="block-card deletable" id="tramitesCard">
+      <button class="del-btn" onclick="removeEl('tramitesCard')">×</button>
+      <h3><span class="block-icon">📋</span> Trámites pendientes</h3>
+      <div class="item-rows" id="tramitesRows">
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Luz / CFE</span><span class="item-detail editable" contenteditable="true">Detalle aquí</span><select class="tag tag-red tag-select" onchange="styleSelect(this)"><option value="red">Pendiente</option><option value="yellow">En gestión</option><option value="green">Resuelto</option><option value="blue">Por iniciar</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Finiquito Irineo</span><span class="item-detail editable" contenteditable="true">Detalle aquí</span><select class="tag tag-red tag-select" onchange="styleSelect(this)"><option value="red">Pendiente</option><option value="yellow">En gestión</option><option value="green">Resuelto</option><option value="blue">Por iniciar</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Trámite adicional</span><span class="item-detail editable" contenteditable="true">Detalle aquí</span><select class="tag tag-yellow tag-select" onchange="styleSelect(this)"><option value="yellow">En gestión</option><option value="red">Pendiente</option><option value="green">Resuelto</option><option value="blue">Por iniciar</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+      </div>
+      <button class="add-row-btn" onclick="addItemRow('tramitesRows')">+ Agregar fila</button>
+    </div>
+  </div>
+
+  <div style="margin-top:12px; display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:12px;">
+    <div class="block-card deletable" id="siguientesCard" style="grid-column: 1 / -1;">
+      <button class="del-btn" onclick="removeEl('siguientesCard')">×</button>
+      <h3><span class="block-icon">📅</span> Próximos pasos</h3>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:0 2rem;" id="siguientesRows">
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Seguimiento CFE</span><span class="item-detail editable" contenteditable="true">Fecha objetivo</span><select class="tag tag-red tag-select" onchange="styleSelect(this)"><option value="red">Urgente</option><option value="yellow">Próximo</option><option value="green">Listo</option><option value="blue">Planeado</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Cerrar finiquito</span><span class="item-detail editable" contenteditable="true">Fecha objetivo</span><select class="tag tag-red tag-select" onchange="styleSelect(this)"><option value="red">Urgente</option><option value="yellow">Próximo</option><option value="green">Listo</option><option value="blue">Planeado</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Entrega parque</span><span class="item-detail editable" contenteditable="true">Fecha estimada</span><select class="tag tag-yellow tag-select" onchange="styleSelect(this)"><option value="yellow">Próximo</option><option value="red">Urgente</option><option value="green">Listo</option><option value="blue">Planeado</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+        <div class="item-row"><span class="item-name editable" contenteditable="true">Entrega obra civil</span><span class="item-detail editable" contenteditable="true">Fecha estimada</span><select class="tag tag-blue tag-select" onchange="styleSelect(this)"><option value="blue">Planeado</option><option value="yellow">Próximo</option><option value="red">Urgente</option><option value="green">Listo</option></select><button class="del-row-btn" onclick="removeRow(this)">×</button></div>
+      </div>
+      <button class="add-row-btn" onclick="addItemRow('siguientesRows')">+ Agregar fila</button>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;">
+    <div class="block-card deletable" id="notasCard">
+      <button class="del-btn" onclick="removeEl('notasCard')">×</button>
+      <h3><span class="block-icon">💬</span> Notas del equipo</h3>
+      <textarea style="width:100%;min-height:110px;border:0.5px solid var(--border);border-radius:8px;padding:10px;font-family:var(--font-sans);font-size:13px;color:var(--text-main);resize:vertical;outline:none;line-height:1.6;" placeholder="Notas, comentarios o seguimientos importantes..."></textarea>
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.getElementById('hoy').textContent = new Date().toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+
+let editMode = false;
+function toggleEdit() {
+  editMode = !editMode;
+  const app = document.getElementById('app');
+  const btn = document.getElementById('editBtn');
+  const hint = document.getElementById('editHint');
+  if (editMode) {
+    app.classList.add('edit-active');
+    btn.classList.add('active');
+    btn.textContent = '✓ Desactivar edición';
+    hint.textContent = 'Modo activo: haz clic en × para eliminar secciones o filas';
+    document.querySelectorAll('.edit-active-show').forEach(el => el.style.display = 'inline-block');
+  } else {
+    app.classList.remove('edit-active');
+    btn.classList.remove('active');
+    btn.textContent = '✎ Activar modo edición';
+    hint.textContent = 'Activa el modo edición para modificar o eliminar cualquier elemento';
+    document.querySelectorAll('.edit-active-show').forEach(el => el.style.display = 'none');
+  }
+}
+function removeEl(id) {
+  const el = document.getElementById(id);
+  if (el) { el.style.opacity='0'; el.style.transition='opacity 0.2s'; setTimeout(()=>el.remove(),200); }
+}
+function removeRow(btn) {
+  const row = btn.closest('.item-row') || btn.closest('tr');
+  if (row) { row.style.opacity='0'; row.style.transition='opacity 0.2s'; setTimeout(()=>row.remove(),200); }
+}
+function styleSelect(sel) {
+  const map = { green:'tag-green', yellow:'tag-yellow', red:'tag-red', blue:'tag-blue' };
+  sel.className = 'tag tag-select ' + (map[sel.value] || 'tag-blue');
+}
+function addPagoRow() {
+  const tbody = document.getElementById('pagosBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><span class="editable" contenteditable="true">Nuevo concepto</span></td><td><span class="editable" contenteditable="true">Proveedor</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r monto">$<span class="editable" contenteditable="true">—</span></td><td class="r pend-amt">$<span class="editable" contenteditable="true">—</span></td><td><select class="tag tag-blue tag-select" onchange="styleSelect(this)"><option value="blue">Por iniciar</option><option value="yellow">En proceso</option><option value="green">Pagado</option><option value="red">Pendiente</option></select></td><td><button class="del-row-btn" onclick="removeRow(this)" style="display:flex">×</button></td>`;
+  tbody.appendChild(tr);
+  tr.querySelector('.editable').focus();
+}
+function addItemRow(containerId) {
+  const container = document.getElementById(containerId);
+  const div = document.createElement('div');
+  div.className = 'item-row';
+  div.innerHTML = `<span class="item-name editable" contenteditable="true">Nuevo elemento</span><select class="tag tag-blue tag-select" onchange="styleSelect(this)"><option value="blue">Por iniciar</option><option value="yellow">En proceso</option><option value="green">Listo</option><option value="red">Urgente</option></select><button class="del-row-btn" onclick="removeRow(this)" style="display:flex">×</button>`;
+  container.appendChild(div);
+  div.querySelector('.editable').focus();
+}
+let kpiCount = 6;
+function addKpi() {
+  kpiCount++;
+  const id = 'kpi' + kpiCount;
+  const div = document.createElement('div');
+  div.className = 'kpi-card deletable'; div.id = id;
+  div.innerHTML = `<button class="del-btn" onclick="removeEl('${id}')" style="display:flex">×</button><div class="indicator" style="background:var(--accent);position:absolute;top:1rem;right:2.2rem;width:8px;height:8px;border-radius:50%"></div><div class="label"><span class="editable" contenteditable="true">Nuevo KPI</span></div><div class="value"><span class="editable" contenteditable="true">—</span></div><div class="sub"><span class="editable" contenteditable="true">Descripción</span></div><div class="progress-bar-wrap"><div class="progress-bar" style="width:0%"></div></div>`;
+  document.getElementById('kpiGrid').appendChild(div);
+  div.querySelector('.editable').focus();
+}
+</script>
